@@ -32,4 +32,3 @@ class_id = prediction.argmax().item()
 score = prediction[class_id].item()
 category_name = weights.meta["categories"][class_id]
 print(f"{category_name}: {100 * score:.1f}%")
-

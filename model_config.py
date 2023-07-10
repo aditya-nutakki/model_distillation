@@ -1,4 +1,7 @@
-batch_size = 16
+batch_size = 96
 epochs = 30
-learner_model_input_dims = (3, 512, 512)
-dataset_path = "/mnt/d/work/datasets/colors/classes" # path to folder containing 'train' and 'test'
+input_dims = (3, 224, 224) # make sure to modify the beginning and the last layers of any model in train_module to get the correct shapes
+# dataset_path = "/mnt/d/work/datasets/rice_image_dataset" # path to folder containing 'train' and 'test'
+train_path, test_path = "/mnt/d/work/datasets/rice_image_dataset/train", "/mnt/d/work/datasets/rice_image_dataset/test"
+device = "cuda" # or "cpu"
+save_dir, save_model_name = "./models", "learner_model" # .pt extension will be added, 'None' if you dont want to save 
