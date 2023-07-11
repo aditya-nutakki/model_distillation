@@ -21,8 +21,8 @@ class LearnerModel(nn.Module):
         self.flatten = nn.Flatten()
         self.linear1 = nn.Linear(in_features=40000, out_features=32)
 
-        assert self.nc > 1, "Dataset found to train on 1 or 0 classes"
-        print(self.nc)
+        assert self.nc > 1, "Dataset found on train with 1 or 0 classes"
+        # print(self.nc)
         self.fc = nn.Linear(in_features=32, out_features=self.nc)
 
     def forward(self, x):
@@ -34,7 +34,8 @@ class LearnerModel(nn.Module):
         # print(f"shape after flattening => {x.shape}")
         x = self.linear1(x)
         x = self.fc(x)
-        return F.softmax(x)
+        # return F.softmax(x)
+        return x
 
 
 if __name__ == "__main__":
