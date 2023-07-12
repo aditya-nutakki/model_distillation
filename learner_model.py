@@ -5,10 +5,11 @@ import os
 from torchvision import transforms
 import cv2
 import torch, torchvision
+import model_config as c
 
 # print(dataset_path)
 class LearnerModel(nn.Module):
-    def __init__(self, input_dims=(3, 512, 512)) -> None:
+    def __init__(self, input_dims=c.input_dims) -> None:
         super().__init__()
         # expecting input dims to be a list or tuple in (C, H, W) mode
 
