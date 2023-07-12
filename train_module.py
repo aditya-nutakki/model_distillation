@@ -126,6 +126,8 @@ class TrainModule():
     
 
     def _train(self):
+        if self.mode != "train":
+            raise Exception(f"Mode was set to {self.mode}; but called train function. Change Mode to 'train'")
         torch.cuda.empty_cache()
         print(f"Starting training !")
 
