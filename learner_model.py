@@ -41,23 +41,3 @@ class LearnerModel(nn.Module):
         x = self.fc(x)
         # return F.softmax(x)
         return x
-
-
-if __name__ == "__main__":
-    lm = LearnerModel(input_dims)
-    compose_transforms = transforms.Compose(
-        [transforms.ToTensor(),
-        transforms.Resize(size=(input_dims[1], input_dims[2])), 
-        transforms.Normalize(mean = [0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])],
-    )
-
-
-    # img = torch.Tensor(cv2.imread("./dog.jpg"))
-    img = cv2.imread("./dog.jpg")
-    print(img.shape)
-    img = compose_transforms(img)
-    # print(img)
-    print(img.shape)
-    img = img.unsqueeze(dim=0)
-    preds = lm(img)
-    print(preds)

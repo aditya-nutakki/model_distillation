@@ -70,18 +70,20 @@ class TrainModule():
 
 
     def infer(self, image_paths):
-        images = []
-        for image_path in image_paths:
-            images.append(self.transforms(cv2.imread(image_path)))
-            # print(images[-1].shape, type(images[-1]))
-        
-        images = torch.stack(images).to(self.device)
-        preds = F.softmax(self.model(images), dim=1)
-        conf, classes = torch.max(preds, 1)
-        # print(preds, conf, classes)
-        conf, classes = conf.cpu().detach().numpy(), classes.cpu().detach().numpy()
-        for score, class_ in zip(conf, classes):
-            print(f"Class => {self.idx_to_class[class_]}; Score => {score}")
+        assert self.mode == "infer" # set 'mode' to 'infer' in model_config.py  
+        with torch.no_grad():
+            images = []
+            for image_path in image_paths:
+                images.append(self.transforms(cv2.imread(image_path)))
+                # print(images[-1].shape, type(images[-1]))
+            
+            images = torch.stack(images).to(self.device)
+            preds = F.softmax(self.model(images), dim=1)
+            conf, classes = torch.max(preds, 1)
+            # print(preds, conf, classes)
+            conf, classes = conf.cpu().detach().numpy(), classes.cpu().detach().numpy()
+            for score, class_ in zip(conf, classes):
+                print(f"Class => {self.idx_to_class[class_]}; Score => {score}")
 
 
     def modify_last_layer(self, model):
@@ -125,7 +127,7 @@ class TrainModule():
         return acc
     
 
-    def _train(self):
+    def train(self):
         if self.mode != "train":
             raise Exception(f"Mode was set to {self.mode}; but called train function. Change Mode to 'train'")
         torch.cuda.empty_cache()
@@ -175,6 +177,7 @@ class TrainModule():
     def learn_from(self, base_model):
         # expecting base_model to be a loaded model with weights; we dont really care about labels
         base_model = self.modify_last_layer(base_model).to(self.device)
+        base_model.load_state_dict(torch.load(c.base_model_path))
         base_model.eval()
 
         if self.mode != "train":
@@ -193,7 +196,12 @@ class TrainModule():
                 
                 self.opt.zero_grad()
 
-                preds, base_model_preds = self.model(images), F.softmax(base_model(images))
+                preds = self.model(images)
+                
+                with torch.no_grad():
+                    base_model_preds = F.softmax(base_model(images))
+                    base_model_preds.requires_grad = False
+                    
                 # will be of the shape (batch_size, nc)
                 _, max_preds = torch.max(base_model_preds, dim=1)
                 max_preds = max_preds.to(self.device)
@@ -212,16 +220,16 @@ class TrainModule():
                     self._write_logs(f"epoch {_e+1}; batch {i}; loss {last_loss}\n")
                     running_loss = 0.0
 
-            # ftime = time.time()
-            # print()
-            # print(f"Took {ftime-stime}s to complete epoch number {_e+1}")
+            ftime = time.time()
+            print()
+            print(f"Took {ftime-stime}s to complete epoch number {_e+1}")
 
-            # # if self.save_dir:
-            # #     torch.save(self.model.state_dict(), self.save_dir + f"_epoch{_e+1}.pt")
+            if self.save_dir:
+                torch.save(self.model.state_dict(), self.save_dir + f"_epoch{_e+1}.pt")
             
-            # # print("Validating on test set... ")
-            # # acc = self._val()
-            # # print(f"Val Acc => {acc} in epoch {_e+1}")
-            # # self._write_logs(f"validation acc on epoch {_e+1}; val_acc {acc}\n\n")
+            print("Validating on test set... ")
+            acc = self._val()
+            print(f"Val Acc => {acc} in epoch {_e+1}")
+            self._write_logs(f"validation acc on epoch {_e+1}; val_acc {acc}\n\n")
 
-            # print()
+            print()
